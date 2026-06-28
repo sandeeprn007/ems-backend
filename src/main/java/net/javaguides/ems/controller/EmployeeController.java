@@ -3,11 +3,10 @@ package net.javaguides.ems.controller;
 import lombok.AllArgsConstructor;
 import net.javaguides.ems.dto.EmployeeDto;
 import net.javaguides.ems.service.EmployeeService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @AllArgsConstructor
 @CrossOrigin("*")
@@ -33,12 +32,16 @@ public class EmployeeController {
     }
 
     //Build get All employee REST API
-    @GetMapping
-    public ResponseEntity<List<EmployeeDto>> getAllEmployees(){
-        List<EmployeeDto> empployees = employeeService.getAllEmployees();
-        return ResponseEntity.ok(empployees);
-    }
 
+    @GetMapping
+    public ResponseEntity<Page<EmployeeDto>> getAllEmployees(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+
+        return ResponseEntity.ok(employeeService.getAllEmployees(page, size, sortBy, sortDir));
+    }
     //Build update employee REST API
     @PutMapping("{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable("id") long employeeId, @RequestBody EmployeeDto updatedEmployee){

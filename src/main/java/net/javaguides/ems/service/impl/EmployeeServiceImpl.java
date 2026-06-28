@@ -8,15 +8,20 @@ import net.javaguides.ems.exception.ResourceNotFoundException;
 import net.javaguides.ems.mapper.EmployeeMapper;
 import net.javaguides.ems.repository.EmployeeRepository;
 import net.javaguides.ems.service.EmployeeService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
 
+    private static final int MAX_PAGE_SIZE = 100;
+    private static final Set<String> SORTABLE_FIELDS = Set.of("id", "firstName", "lastName", "email");
 
     private EmployeeRepository employeeRepository;
 
@@ -42,10 +47,53 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<EmployeeDto> getAllEmployees() {
-        List<Employee> employees = employeeRepository.findAll();
-        return employees.stream().map(employee -> EmployeeMapper.mapToEmployeeDto(employee))
-                .collect(Collectors.toList());
+    public Page<EmployeeDto> getAllEmployees(int page, int size, String sortBy, String sortDir) {
+
+        Pageable pageable = createPageable(page, size, sortBy, sortDir);
+
+        Page<Employee> employeePage = employeeRepository.findAll(pageable);
+
+        return employeePage.map(EmployeeMapper::mapToEmployeeDto);
+    }
+
+    private Pageable createPageable(int page, int size, String sortBy, String sortDir) {
+
+        if (page < 0) {
+            throw new IllegalArgumentException("Page number must be zero or greater");
+        }
+
+        if (size < 1) {
+            throw new IllegalArgumentException("Page size must be greater than zero");
+        }
+
+        if (size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("Page size must not be greater than " + MAX_PAGE_SIZE);
+        }
+
+        String sortProperty = sortBy == null ? "" : sortBy.trim();
+
+        if (!SORTABLE_FIELDS.contains(sortProperty)) {
+            throw new IllegalArgumentException("Sort field must be one of: id, firstName, lastName, email");
+        }
+
+        Sort.Direction direction = getSortDirection(sortDir);
+
+        return PageRequest.of(page, size, Sort.by(direction, sortProperty));
+    }
+
+    private Sort.Direction getSortDirection(String sortDir) {
+
+        String direction = sortDir == null ? "" : sortDir.trim();
+
+        if ("asc".equalsIgnoreCase(direction)) {
+            return Sort.Direction.ASC;
+        }
+
+        if ("desc".equalsIgnoreCase(direction)) {
+            return Sort.Direction.DESC;
+        }
+
+        throw new IllegalArgumentException("Sort direction must be 'asc' or 'desc'");
     }
 
     @Override
@@ -73,7 +121,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 }
-
 
 
 
