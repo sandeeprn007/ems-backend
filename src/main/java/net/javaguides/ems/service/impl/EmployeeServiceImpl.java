@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -54,6 +55,20 @@ public class EmployeeServiceImpl implements EmployeeService {
         Page<Employee> employeePage = employeeRepository.findAll(pageable);
 
         return employeePage.map(EmployeeMapper::mapToEmployeeDto);
+    }
+
+    @Override
+    public List<EmployeeDto> searchEmployees(String keyword) {
+
+        String searchKeyword = keyword == null ? "" : keyword.trim();
+
+        List<Employee> employees = searchKeyword.isEmpty()
+                ? employeeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+                : employeeRepository.searchEmployees(searchKeyword);
+
+        return employees.stream()
+                .map(EmployeeMapper::mapToEmployeeDto)
+                .toList();
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDir) {
@@ -121,7 +136,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 }
-
 
 
 

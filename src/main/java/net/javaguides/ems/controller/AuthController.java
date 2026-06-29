@@ -1,5 +1,6 @@
 package net.javaguides.ems.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import net.javaguides.ems.dto.ChangePasswordDto;
 import net.javaguides.ems.dto.JwtAuthResponse;
@@ -24,20 +25,20 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<JwtAuthResponse> login(@Valid @RequestBody LoginDto loginDto) {
         JwtAuthResponse jwtAuthResponse = authService.login(loginDto);
         return ResponseEntity.ok(jwtAuthResponse);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerDto) {
         String response = authService.register(registerDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register-admin")
-    public ResponseEntity<String> registerAdmin(@RequestBody RegisterDto registerDto) {
+    public ResponseEntity<String> registerAdmin(@Valid @RequestBody RegisterDto registerDto) {
         String response = authService.registerAdmin(registerDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

@@ -54,6 +54,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String register(RegisterDto registerDto) {
+        validateNormalRegistration(registerDto);
         registerUserWithRole(registerDto, "ROLE_USER");
         return "User registered successfully!";
     }
@@ -87,7 +88,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void registerUserWithRole(RegisterDto registerDto, String roleName) {
-        if (userRepository.existsByUsername(registerDto.getUsername())) {
+        String username = resolveUsername(registerDto);
+
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -100,11 +103,34 @@ public class AuthServiceImpl implements AuthService {
 
         User user = new User();
         user.setName(registerDto.getName());
-        user.setUsername(registerDto.getUsername());
+        user.setUsername(username);
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        user.setAuthProvider("LOCAL");
         user.setRoles(Set.of(role));
 
         userRepository.save(user);
+    }
+
+    private void validateNormalRegistration(RegisterDto registerDto) {
+        if (registerDto.getConfirmPassword() == null || registerDto.getConfirmPassword().isBlank()) {
+            throw new IllegalArgumentException("Confirm password is required");
+        }
+
+        if (!registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
+            throw new IllegalArgumentException("Password and confirm password do not match");
+        }
+
+        if (!registerDto.getEmail().toLowerCase().endsWith("@gmail.com")) {
+            throw new IllegalArgumentException("Please enter a valid Gmail address.");
+        }
+    }
+
+    private String resolveUsername(RegisterDto registerDto) {
+        if (registerDto.getUsername() != null && !registerDto.getUsername().isBlank()) {
+            return registerDto.getUsername().trim();
+        }
+
+        return registerDto.getEmail().substring(0, registerDto.getEmail().indexOf('@')).trim();
     }
 }

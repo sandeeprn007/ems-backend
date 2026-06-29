@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @CrossOrigin("*")
 @RestController
@@ -42,6 +44,13 @@ public class EmployeeController {
 
         return ResponseEntity.ok(employeeService.getAllEmployees(page, size, sortBy, sortDir));
     }
+
+    //Build search employees REST API
+    @GetMapping("/search")
+    public ResponseEntity<List<EmployeeDto>> searchEmployees(@RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(employeeService.searchEmployees(keyword));
+    }
+
     //Build update employee REST API
     @PutMapping("{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable("id") long employeeId, @RequestBody EmployeeDto updatedEmployee){

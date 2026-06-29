@@ -42,6 +42,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    private String authProvider = "LOCAL";
+
+    private String profilePictureUrl;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(
             name = "users_roles",

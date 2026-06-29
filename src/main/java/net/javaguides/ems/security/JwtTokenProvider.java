@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -23,10 +24,13 @@ public class JwtTokenProvider {
     private long jwtExpirationDate;
 
     public String generateToken(Authentication authentication) {
-        String username = authentication.getName();
+        return generateToken(authentication.getName(), authentication.getAuthorities());
+    }
+
+    public String generateToken(String username, Collection<? extends GrantedAuthority> authorities) {
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
-        List<String> roles = authentication.getAuthorities()
+        List<String> roles = authorities
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
